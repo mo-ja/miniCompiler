@@ -22,10 +22,24 @@ struct Token {
 };
 
 Token *token;
+char *user_input;
 
 void error(char *fmt, ...){
   va_list ap;
   va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr, "\n");
+  exit(1);
+}
+
+void error_at(char *loc, char *fmt, ...){
+  va_list ap;
+  int pos = loc - user_input;
+
+  va_start(ap, fmt);
+  fprintf(stderr, "%s\n", user_input);
+  fprintf(stderr, "%*s", pos, " ");
+  fprintf(stderr, "^ ");
   vfprintf(stderr, fmt, ap);
   fprintf(stderr, "\n");
   exit(1);
@@ -41,14 +55,14 @@ bool consume(char op){
 
 void expect(char op){
   if (token->kind != TK_RESERVED || token->str[0] != op)
-    error("%c is expected but not detected.", op);
+    error_at(token->str, "%c is expected but not detected.", op);
   token = token->next;
   return;
 }
 
 int expect_number(){
   if (token->kind != TK_NUM)
-    error("%s is not a number.", token->str);
+    error_at(token->str, "%c is not a number.", token->str[0]);
   int val = token->val;
   token = token->next;
   return val;
@@ -85,7 +99,7 @@ Token *tokenize(char *p){
       cur->val = strtol(p, &p, 10);
       continue;
     }
-    error("%c cannot be tokenized.", p[0]);
+    error_at(p, "cannot be tokenized.");
   } 
   new_token(TK_EOF, cur, p);
   return head.next;
@@ -98,8 +112,10 @@ int main(int argc, char** argv)
     fprintf(stderr, "[Error] The number of arguments must be two or over.");
     return 1;
   }
-  token = tokenize(argv[1]);
+  user_input = argv[1];
+  token = tokenize(user_input);
   
+
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
