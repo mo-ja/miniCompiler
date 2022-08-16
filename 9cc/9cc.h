@@ -37,6 +37,7 @@ typedef enum{
         ND_LE,
 } NodeKind;
 
+typedef struct Node Node;
 
 struct Node {
   NodeKind kind;
@@ -45,7 +46,7 @@ struct Node {
   int val;
 };
 
-void error(char *fmt);
+void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char* op);
 void expect(char* op);
@@ -54,13 +55,12 @@ bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
 Token *tokenize(char *p);
 
-typedef struct Node Node;
-
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 void gen(Node *node);
 
 Node *expr();
+
 Node *primary();
 Node *unary();
 Node *equality();
